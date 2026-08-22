@@ -1,15 +1,15 @@
 {
   "project_info": {
     "project_number": "167630012179",
-    "project_id": "Noctra-73bf3",
-    "storage_bucket": "Noctra-73bf3.firebasestorage.app"
+    "project_id": "aniqu-73bf3",
+    "storage_bucket": "aniqu-73bf3.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:167630012179:android:0c005fb08cfba7ed99a4e6",
         "android_client_info": {
-          "package_name": "com.pascal.noctra"
+          "package_name": "com.pascal.aniqu"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "167630012179-kfco452roqpit8o35v2n0luhs01ljtmg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.pascal.noctra",
+            "package_name": "com.pascal.aniqu",
             "certificate_hash": "909133d99f4153ed7335b07730508295ce017abb"
           }
         },
@@ -42,7 +42,115 @@
               "client_id": "167630012179-g71egp6vukepbe9usg1o6fkmarnemdcj.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.pascal.noctra"
+                "bundle_id": "com.pascal.aniqu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167630012179:android:c7b7078faba26beb99a4e6",
+        "android_client_info": {
+          "package_name": "com.pascal.imagecompressor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "167630012179-jlc5qshenlm03e26bgu7urc9jmc1rgn4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBExTe8mrgCoBr9s_C0aM6FRfTitSasXWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167630012179-jlc5qshenlm03e26bgu7urc9jmc1rgn4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "167630012179-g71egp6vukepbe9usg1o6fkmarnemdcj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pascal.aniqu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167630012179:android:db3d0427bcb149e299a4e6",
+        "android_client_info": {
+          "package_name": "com.pascal.noctra"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "167630012179-jlc5qshenlm03e26bgu7urc9jmc1rgn4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBExTe8mrgCoBr9s_C0aM6FRfTitSasXWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167630012179-jlc5qshenlm03e26bgu7urc9jmc1rgn4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "167630012179-g71egp6vukepbe9usg1o6fkmarnemdcj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pascal.aniqu"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167630012179:android:8b4f0d747ea3f6af99a4e6",
+        "android_client_info": {
+          "package_name": "com.pascal.omniunit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "167630012179-jlc5qshenlm03e26bgu7urc9jmc1rgn4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBExTe8mrgCoBr9s_C0aM6FRfTitSasXWk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167630012179-jlc5qshenlm03e26bgu7urc9jmc1rgn4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "167630012179-g71egp6vukepbe9usg1o6fkmarnemdcj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pascal.aniqu"
               }
             }
           ]

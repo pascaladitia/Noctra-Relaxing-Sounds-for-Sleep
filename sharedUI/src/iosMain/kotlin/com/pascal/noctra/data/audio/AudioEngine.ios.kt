@@ -1,6 +1,8 @@
 package com.pascal.noctra.data.audio
 
 import com.pascal.noctra.domain.model.sound.ActiveSound
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.usePinned
 import platform.AVFAudio.AVAudioPlayer
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
@@ -9,6 +11,15 @@ import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.create
+import platform.MediaPlayer.MPMediaItemArtwork
+import platform.MediaPlayer.MPNowPlayingInfoCenter
+import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackDuration
+import platform.MediaPlayer.MPNowPlayingInfoPropertyElapsedPlaybackTime
+import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
+import platform.MediaPlayer.MPRemoteCommand
+import platform.MediaPlayer.MPRemoteCommandCenter
+import platform.MediaPlayer.MPRemoteCommandHandlerStatus
+import platform.UIKit.UIImage
 import kotlin.random.Random
 
 class IosAudioEngine : AudioEngine {
@@ -17,6 +28,7 @@ class IosAudioEngine : AudioEngine {
     private val _activeSounds = mutableMapOf<String, ActiveSound>()
     private var masterVolume = 0.8f
     private var _backgroundPlaybackEnabled = true
+    private val soundFileManager = SoundFileManager()
 
     override val isBackgroundPlaybackEnabled: Boolean get() = _backgroundPlaybackEnabled
     override fun setBackgroundPlaybackEnabled(enabled: Boolean) { _backgroundPlaybackEnabled = enabled }
@@ -28,37 +40,155 @@ class IosAudioEngine : AudioEngine {
 
         try {
             configureAudioSession()
+            setupRemoteCommandCenter()
 
-            val sampleRate = 44100
-            val durationSeconds = 30
-            val totalSamples = sampleRate * durationSeconds
-            val pcmData = ShortArray(totalSamples)
-            val random = Random.Default
-            var phase = 0.0
-
-            phase = SoundGenerator.generate(activeSound.sound.fileName, pcmData, sampleRate, phase, random)
-
-            val wavData = createWavData(pcmData, sampleRate, 1, 16)
-            val tempDir = NSTemporaryDirectory()
-            val filePath = "$tempDir/${activeSound.sound.id}_generated.wav"
-
-            wavData.usePinned { pinned ->
-                val nsData = NSData.create(
-                    bytes = pinned.address.toCPointer(),
-                    length = wavData.size.toULong()
-                )
-                nsData.writeToFile(filePath, atomically = true)
+            val cachedPath = soundFileManager.getCachedPath(activeSound.sound.id)
+            if (cachedPath != null) {
+                playFromFile(activeSound, cachedPath)
+                updateNowPlayingInfo(activeSound)
+                return
             }
 
-            val url = NSURL.fileURLWithPath(filePath)
-            val player = AVAudioPlayer(contentsOfURL = url, error = null)
-            player.numberOfLoops = -1
-            player.volume = activeSound.volume * masterVolume
-            player.prepareToPlay()
-            player.play()
-            players[activeSound.sound.id] = player
+            val downloadedPath = tryDownloadSound(activeSound.sound.id)
+            if (downloadedPath != null) {
+                playFromFile(activeSound, downloadedPath)
+                updateNowPlayingInfo(activeSound)
+                return
+            }
+
+            playFromGenerated(activeSound)
+            updateNowPlayingInfo(activeSound)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun tryDownloadSound(soundId: String): String? {
+        val urls = SoundUrlConfig.getDownloadUrls(soundId)
+        for (urlStr in urls) {
+            try {
+                val url = NSURL(string = urlStr)
+                val data = NSData.dataWithContentsOfURL(url, options = 0, error = null) ?: continue
+                if (data.length.toLong() > 1000) {
+                    val cacheDir = NSTemporaryDirectory() + "/noctra_sounds"
+                    NSFileManager.defaultManager.createDirectoryAtPath(
+                        cacheDir, withIntermediateDirectories = true, attributes = null, error = null
+                    )
+                    val outPath = "$cacheDir/${soundId}.wav"
+                    data.writeToFile(outPath, atomically = true)
+                    return outPath
+                }
+            } catch (_: Exception) {
+                continue
+            }
+        }
+        return null
+    }
+
+    private fun playFromFile(activeSound: ActiveSound, filePath: String) {
+        val url = NSURL.fileURLWithPath(filePath)
+        val player = AVAudioPlayer(contentsOfURL = url, error = null)
+        player.numberOfLoops = -1
+        player.volume = activeSound.volume * masterVolume
+        player.prepareToPlay()
+        player.play()
+        players[activeSound.sound.id] = player
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun playFromGenerated(activeSound: ActiveSound) {
+        val sampleRate = 44100
+        val durationSeconds = 30
+        val totalSamples = sampleRate * durationSeconds
+        val pcmData = ShortArray(totalSamples)
+        val random = Random.Default
+        var phase = 0.0
+
+        phase = SoundGenerator.generate(activeSound.sound.fileName, pcmData, sampleRate, phase, random)
+
+        val wavData = createWavData(pcmData, sampleRate, 1, 16)
+        val tempDir = NSTemporaryDirectory()
+        val filePath = "$tempDir/${activeSound.sound.id}_generated.wav"
+
+        wavData.usePinned { pinned ->
+            val nsData = NSData.create(
+                bytes = pinned.address,
+                length = wavData.size.toULong()
+            )
+            nsData.writeToFile(filePath, atomically = true)
+        }
+
+        val url = NSURL.fileURLWithPath(filePath)
+        val player = AVAudioPlayer(contentsOfURL = url, error = null)
+        player.numberOfLoops = -1
+        player.volume = activeSound.volume * masterVolume
+        player.prepareToPlay()
+        player.play()
+        players[activeSound.sound.id] = player
+    }
+
+    private fun setupRemoteCommandCenter() {
+        val commandCenter = MPRemoteCommandCenter.sharedCommandCenter
+
+        commandCenter.playCommand.addTargetWithHandler { _ ->
+            resumeAll()
+            MPRemoteCommandHandlerStatus.success
+        }
+
+        commandCenter.pauseCommand.addTargetWithHandler { _ ->
+            pauseAll()
+            MPRemoteCommandHandlerStatus.success
+        }
+
+        commandCenter.togglePlayPauseCommand.addTargetWithHandler { _ ->
+            togglePlayPause()
+            MPRemoteCommandHandlerStatus.success
+        }
+
+        commandCenter.stopCommand.addTargetWithHandler { _ ->
+            stopAllSounds()
+            MPRemoteCommandHandlerStatus.success
+        }
+
+        commandCenter.nextTrackCommand.enabled = false
+        commandCenter.previousTrackCommand.enabled = false
+    }
+
+    private fun updateNowPlayingInfo(activeSound: ActiveSound) {
+        val nowPlayingInfo = mapOf(
+            "noctra_title" to activeSound.sound.name,
+            "noctra_artist" to "Noctra",
+            MPNowPlayingInfoPropertyPlaybackRate to 1.0,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime to 0.0,
+            MPNowPlayingInfoPropertyPlaybackDuration to 0.0
+        )
+        MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo = nowPlayingInfo
+    }
+
+    private fun togglePlayPause() {
+        val anyPlaying = players.values.any { it.isPlaying }
+        if (anyPlaying) {
+            pauseAll()
+        } else {
+            resumeAll()
+        }
+    }
+
+    private fun pauseAll() {
+        players.values.forEach { it.pause() }
+        MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo?.let { info ->
+            val mutableInfo = info.toMutableMap()
+            mutableInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
+            MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo = mutableInfo
+        }
+    }
+
+    private fun resumeAll() {
+        players.values.forEach { it.play() }
+        MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo?.let { info ->
+            val mutableInfo = info.toMutableMap()
+            mutableInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+            MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo = mutableInfo
         }
     }
 
@@ -108,11 +238,15 @@ class IosAudioEngine : AudioEngine {
     override fun stopSound(soundId: String) {
         _activeSounds.remove(soundId)
         players.remove(soundId)?.apply { stop() }
+        if (players.isEmpty()) {
+            MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo = null
+        }
     }
 
     override fun stopAllSounds() {
         players.forEach { (_, player) -> player.stop() }
         players.clear()
+        MPNowPlayingInfoCenter.defaultCenter.nowPlayingInfo = null
     }
 
     override fun updateVolume(soundId: String, volume: Float) {
@@ -145,6 +279,7 @@ class IosAudioEngine : AudioEngine {
             session.setCategory(AVAudioSessionCategoryPlayback, error = null)
             session.setMode(AVAudioSessionModeDefault, error = null)
             session.setActive(true, error = null)
-        } catch (_: Exception) {}
+        } catch (_: Exception) {
+        }
     }
 }

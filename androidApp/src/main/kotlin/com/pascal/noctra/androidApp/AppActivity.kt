@@ -1,6 +1,8 @@
 package com.pascal.noctra.androidApp
 
 import android.app.Activity
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,9 +14,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.pascal.noctra.App
 import com.pascal.noctra.ContextUtils
 import com.pascal.noctra.data.audio.AudioNotificationCallback
-import com.pascal.noctra.data.audio.AudioNotificationHelper
 import com.pascal.noctra.data.audio.AudioPlayerManager
 import com.pascal.noctra.data.audio.AudioPlayerManagerHolder
+import com.pascal.noctra.data.audio.NoctraPlaybackService
 import com.pascal.noctra.di.audioModule
 import com.pascal.noctra.di.initKoin
 import com.pascal.noctra.utils.AndroidAppLocaleManager
@@ -58,10 +60,17 @@ class AppActivity : ComponentActivity(), AudioNotificationCallback {
     override fun onPlaybackStateChanged(isPlaying: Boolean, activeCount: Int) {
         runOnUiThread {
             if (isPlaying && activeCount > 0) {
-                AudioNotificationHelper.showNotification(this, isPlaying, activeCount)
-            } else {
-                AudioNotificationHelper.hideNotification(this)
+                startPlaybackService()
             }
+        }
+    }
+
+    private fun startPlaybackService() {
+        val serviceIntent = Intent(this, NoctraPlaybackService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
         }
     }
 

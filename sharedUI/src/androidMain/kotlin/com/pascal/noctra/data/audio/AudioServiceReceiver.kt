@@ -7,14 +7,22 @@ import android.content.Intent
 class AudioServiceReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val manager = AudioPlayerManagerHolder.manager ?: return
+        val action = intent.getStringExtra("action")
 
-        when (intent.getStringExtra("action")) {
-            AudioNotificationHelper.ACTION_TOGGLE_PLAY_PAUSE -> {
-                manager.togglePlayPause()
+        val serviceIntent = Intent(context, NoctraPlaybackService::class.java).apply {
+            this.action = when (action) {
+                AudioNotificationHelper.ACTION_TOGGLE_PLAY_PAUSE -> NoctraPlaybackService.ACTION_TOGGLE
+                AudioNotificationHelper.ACTION_STOP -> NoctraPlaybackService.ACTION_STOP
+                else -> return
             }
-            AudioNotificationHelper.ACTION_STOP -> {
-                manager.stopAllSounds()
+        }
+
+        try {
+            context.startForegroundService(serviceIntent)
+        } catch (_: Exception) {
+            try {
+                context.startService(serviceIntent)
+            } catch (_: Exception) {
             }
         }
     }

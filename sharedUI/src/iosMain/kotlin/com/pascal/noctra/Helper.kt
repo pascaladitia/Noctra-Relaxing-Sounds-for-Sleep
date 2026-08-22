@@ -2,11 +2,10 @@
 
 package com.pascal.noctra
 
-import cocoapods.FirebaseMessaging.FIRMessaging
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.platformLogWriter
+import cocoapods.FirebaseMessaging.FIRMessaging
 import com.pascal.noctra.di.audioModule
-import com.pascal.noctra.di.initKoin as startKoin
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.apps
 import dev.gitlive.firebase.initialize
@@ -14,7 +13,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.AVAudioSessionModeDefault
+import platform.AVFAudio.setActive
 import platform.Foundation.NSData
+import com.pascal.noctra.di.initKoin as startKoin
 
 fun initKoin() {
     configureIosFirebaseIfNeeded()
