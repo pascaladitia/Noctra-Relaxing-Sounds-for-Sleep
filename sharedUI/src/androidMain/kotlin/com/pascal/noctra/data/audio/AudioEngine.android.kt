@@ -1,7 +1,8 @@
 package com.pascal.noctra.data.audio
 
 import android.content.Context
-import android.media.MediaPlayer
+import android.content.Intent
+import android.os.Build
 import com.pascal.noctra.domain.model.sound.ActiveSound
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +14,6 @@ class AndroidAudioEngine(
     private val context: Context
 ) : AudioEngine {
 
-    private val mediaPlayers = ConcurrentHashMap<String, MediaPlayer>()
     private val _activeSounds = ConcurrentHashMap<String, ActiveSound>()
     private var masterVolume = 0.8f
     private var _backgroundPlaybackEnabled = true
@@ -24,9 +24,6 @@ class AndroidAudioEngine(
     override fun setBackgroundPlaybackEnabled(enabled: Boolean) { _backgroundPlaybackEnabled = enabled }
 
     override fun playSound(activeSound: ActiveSound) {
-        val existingMedia = mediaPlayers[activeSound.sound.id]
-        if (existingMedia != null && existingMedia.isPlaying) return
-
         _activeSounds[activeSound.sound.id] = activeSound
 
         scope.launch {
@@ -44,62 +41,46 @@ class AndroidAudioEngine(
                             activeSound.volume
                         )
                     } else {
-                        playFromFile(activeSound, filePath)
+                        startServiceWithSound(activeSound, filePath)
                     }
                 }
             }
         }
     }
 
-    private fun playFromFile(activeSound: ActiveSound, filePath: String) {
+    private fun startServiceWithSound(activeSound: ActiveSound, filePath: String) {
+        val serviceIntent = Intent(context, NoctraPlaybackService::class.java).apply {
+            action = NoctraPlaybackService.ACTION_START
+            putExtra(NoctraPlaybackService.EXTRA_SOUND_ID, activeSound.sound.id)
+            putExtra(NoctraPlaybackService.EXTRA_SOUND_FILE_PATH, filePath)
+            putExtra(NoctraPlaybackService.EXTRA_SOUND_NAME, activeSound.sound.name)
+            putExtra(NoctraPlaybackService.EXTRA_VOLUME, activeSound.volume)
+        }
         try {
-            val player = MediaPlayer().apply {
-                setDataSource(filePath)
-                isLooping = true
-                setVolume(
-                    activeSound.volume * masterVolume,
-                    activeSound.volume * masterVolume
-                )
-                prepare()
-                start()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
             }
-            mediaPlayers[activeSound.sound.id] = player
         } catch (_: Exception) {
         }
     }
 
     override fun stopSound(soundId: String) {
         _activeSounds.remove(soundId)
-        mediaPlayers.remove(soundId)?.apply {
-            try { stop(); release() } catch (_: Exception) {}
-        }
         NoctraPlaybackService.getInstance()?.stopSound(soundId)
     }
 
     override fun stopAllSounds() {
-        mediaPlayers.forEach { (_, player) ->
-            try { player.stop(); player.release() } catch (_: Exception) {}
-        }
-        mediaPlayers.clear()
         NoctraPlaybackService.getInstance()?.stopAllAndRemoveNotification()
     }
 
     override fun updateVolume(soundId: String, volume: Float) {
         _activeSounds[soundId]?.let { _activeSounds[soundId] = it.copy(volume = volume) }
-        try { mediaPlayers[soundId]?.setVolume(volume * masterVolume, volume * masterVolume) } catch (_: Exception) {}
         NoctraPlaybackService.getInstance()?.updateSoundVolume(soundId, volume)
     }
 
     override fun setMuted(soundId: String, muted: Boolean) {
-        try {
-            if (muted) {
-                mediaPlayers[soundId]?.setVolume(0f, 0f)
-            } else {
-                val s = _activeSounds[soundId]
-                val v = if (s != null) s.volume * masterVolume else masterVolume
-                mediaPlayers[soundId]?.setVolume(v, v)
-            }
-        } catch (_: Exception) {}
         NoctraPlaybackService.getInstance()?.updateSoundVolume(
             soundId,
             if (muted) 0f else (_activeSounds[soundId]?.volume ?: 1f) * masterVolume
@@ -108,25 +89,19 @@ class AndroidAudioEngine(
 
     override fun setMasterVolume(volume: Float) {
         masterVolume = volume
-        mediaPlayers.forEach { (id, player) ->
-            val v = (_activeSounds[id]?.volume ?: 1f) * volume
-            try { player.setVolume(v, v) } catch (_: Exception) {}
-        }
         NoctraPlaybackService.getInstance()?.setMasterVolume(volume)
     }
 
     override fun isPlaying(soundId: String): Boolean {
-        val mediaPlayerPlaying = try { mediaPlayers[soundId]?.isPlaying == true } catch (_: Exception) { false }
-        val servicePlaying = NoctraPlaybackService.getInstance()?.isPlaying(soundId) == true
-        return mediaPlayerPlaying || servicePlaying
+        return NoctraPlaybackService.getInstance()?.isPlaying(soundId) == true
     }
 
     override fun getActiveSoundIds(): List<String> {
-        return mediaPlayers.keys.toList()
+        return NoctraPlaybackService.getInstance()?.getActiveSoundIds() ?: emptyList()
     }
 
     override fun release() {
-        stopAllSounds()
+        NoctraPlaybackService.getInstance()?.stopAllAndRemoveNotification()
         _activeSounds.clear()
     }
 }

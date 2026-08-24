@@ -3,6 +3,7 @@ package com.pascal.noctra.data.audio
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 
 class AudioServiceReceiver : BroadcastReceiver() {
 
@@ -18,12 +19,12 @@ class AudioServiceReceiver : BroadcastReceiver() {
         }
 
         try {
-            context.startForegroundService(serviceIntent)
-        } catch (_: Exception) {
-            try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
                 context.startService(serviceIntent)
-            } catch (_: Exception) {
             }
+        } catch (_: Exception) {
         }
     }
 }

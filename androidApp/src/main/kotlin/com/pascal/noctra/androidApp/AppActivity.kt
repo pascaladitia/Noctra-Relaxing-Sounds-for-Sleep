@@ -2,6 +2,7 @@ package com.pascal.noctra.androidApp
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -52,8 +53,18 @@ class AppActivity : ComponentActivity(), AudioNotificationCallback {
         AudioPlayerManagerHolder.manager = audioPlayerManager
         audioPlayerManager.notificationCallback = this
 
+        requestNotificationPermission()
+
         setContent {
             App(onThemeChanged = { ThemeChanged(it) })
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
         }
     }
 
@@ -62,6 +73,7 @@ class AppActivity : ComponentActivity(), AudioNotificationCallback {
             if (isPlaying && activeCount > 0) {
                 startPlaybackService()
             }
+            // Don't stop service when activeCount == 0 from UI — only stop via explicit user action
         }
     }
 

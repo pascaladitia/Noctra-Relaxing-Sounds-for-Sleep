@@ -69,7 +69,7 @@
             android:name="com.pascal.noctra.data.audio.NoctraPlaybackService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
-            android:stopWithTask="true">
+            android:stopWithTask="false">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>

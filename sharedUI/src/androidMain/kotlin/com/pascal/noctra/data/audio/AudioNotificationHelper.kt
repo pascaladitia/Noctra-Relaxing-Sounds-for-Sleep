@@ -35,7 +35,8 @@ object AudioNotificationHelper {
         context: Context,
         activeCount: Int,
         isPlaying: Boolean,
-        mediaSession: MediaSessionCompat? = null
+        mediaSession: MediaSessionCompat? = null,
+        soundName: String? = null
     ): android.app.Notification {
         val contentIntent = context.packageManager
             .getLaunchIntentForPackage(context.packageName)
@@ -48,9 +49,16 @@ object AudioNotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val playPauseIcon = if (isPlaying) {
+            android.R.drawable.ic_media_pause
+        } else {
+            android.R.drawable.ic_media_play
+        }
+        val playPauseLabel = if (isPlaying) "Pause" else "Play"
+
         val playPauseAction = NotificationCompat.Action(
-            if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
-            if (isPlaying) "Pause" else "Play",
+            playPauseIcon,
+            playPauseLabel,
             createActionIntent(context, ACTION_TOGGLE_PLAY_PAUSE)
         )
 
@@ -60,15 +68,21 @@ object AudioNotificationHelper {
             createActionIntent(context, ACTION_STOP)
         )
 
+        val title = soundName ?: "Noctra"
+        val subtitle = if (activeCount > 0) {
+            "$activeCount sound${if (activeCount != 1) "s" else ""} playing"
+        } else {
+            "Noctra"
+        }
+
+        val appIconRes = context.applicationInfo.icon
+
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Noctra")
-            .setContentText("$activeCount sound${if (activeCount != 1) "s" else ""} playing")
-            .setSmallIcon(android.R.drawable.ic_lock_silent_mode_off)
+            .setContentTitle(title)
+            .setContentText(subtitle)
+            .setSmallIcon(appIconRes)
             .setLargeIcon(
-                BitmapFactory.decodeResource(
-                    context.resources,
-                    android.R.drawable.ic_lock_silent_mode_off
-                )
+                BitmapFactory.decodeResource(context.resources, appIconRes)
             )
             .setOngoing(true)
             .setShowWhen(false)
@@ -77,6 +91,7 @@ object AudioNotificationHelper {
             .addAction(playPauseAction)
             .addAction(stopAction)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
 
         if (mediaSession != null) {
             builder.setStyle(
