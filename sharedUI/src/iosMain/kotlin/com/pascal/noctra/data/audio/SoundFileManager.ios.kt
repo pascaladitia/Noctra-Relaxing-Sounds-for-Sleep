@@ -6,6 +6,7 @@ import noctra.sharedui.generated.resources.Res
 import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSTemporaryDirectory
+import platform.Foundation.NSNumber
 import platform.Foundation.create
 import platform.Foundation.writeToFile
 
@@ -27,11 +28,11 @@ actual class SoundFileManager {
         val cachedPath = "$cacheDir/${soundId}.wav"
         if (NSFileManager.defaultManager.fileExistsAtPath(cachedPath)) {
             val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(cachedPath, error = null)
-            val size = (attrs?.get("NSFileSize") as? platform.Foundation.NSNumber)?.longValue ?: 0
+            val size = (attrs?.get("NSFileSize") as? NSNumber)?.longValue ?: 0
             if (size > 1000) {
                 return SoundFileInfo(
                     soundId = soundId,
-                    source = SoundSource.DOWNLOADED,
+                    source = SoundSource.CACHED,
                     filePath = cachedPath
                 )
             }
@@ -58,14 +59,14 @@ actual class SoundFileManager {
         } catch (_: Exception) {
         }
 
-        return SoundFileInfo(soundId = soundId, source = SoundSource.GENERATED)
+        return SoundFileInfo(soundId = soundId, source = SoundSource.CACHED)
     }
 
     actual fun getCachedPath(soundId: String): String? {
         val path = "$cacheDir/${soundId}.wav"
         if (NSFileManager.defaultManager.fileExistsAtPath(path)) {
             val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(path, error = null)
-            val size = (attrs?.get("NSFileSize") as? platform.Foundation.NSNumber)?.longValue ?: 0
+            val size = (attrs?.get("NSFileSize") as? NSNumber)?.longValue ?: 0
             if (size > 1000) return path
         }
         return null

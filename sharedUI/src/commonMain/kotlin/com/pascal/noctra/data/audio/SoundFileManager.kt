@@ -2,8 +2,7 @@ package com.pascal.noctra.data.audio
 
 enum class SoundSource {
     BUNDLED,
-    DOWNLOADED,
-    GENERATED
+    CACHED
 }
 
 data class SoundFileInfo(

@@ -18,7 +18,7 @@ actual class SoundFileManager(private val context: Context) {
             if (cached.exists() && cached.length() > 1000) {
                 return@withContext SoundFileInfo(
                     soundId = soundId,
-                    source = SoundSource.DOWNLOADED,
+                    source = SoundSource.CACHED,
                     filePath = cached.absolutePath
                 )
             }
@@ -38,7 +38,7 @@ actual class SoundFileManager(private val context: Context) {
             } catch (_: Exception) {
             }
 
-            SoundFileInfo(soundId = soundId, source = SoundSource.GENERATED)
+            SoundFileInfo(soundId = soundId, source = SoundSource.CACHED)
         }
     }
 
