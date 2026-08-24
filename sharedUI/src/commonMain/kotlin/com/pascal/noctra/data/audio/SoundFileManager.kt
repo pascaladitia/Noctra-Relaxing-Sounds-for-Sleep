@@ -18,4 +18,5 @@ expect class SoundFileManager {
     fun getCachedPath(soundId: String): String?
     suspend fun preloadAllSounds(soundIds: List<Pair<String, String>>)
     fun clearCache()
+    suspend fun hasBundledSound(soundId: String): Boolean
 }

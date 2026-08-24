@@ -7,11 +7,9 @@ import platform.AVFAudio.AVAudioPlayer
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
 import platform.AVFAudio.AVAudioSessionModeDefault
-import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.create
-import platform.MediaPlayer.MPMediaItemArtwork
 import platform.MediaPlayer.MPNowPlayingInfoCenter
 import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackDuration
 import platform.MediaPlayer.MPNowPlayingInfoPropertyElapsedPlaybackTime
@@ -19,7 +17,6 @@ import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
 import platform.MediaPlayer.MPRemoteCommand
 import platform.MediaPlayer.MPRemoteCommandCenter
 import platform.MediaPlayer.MPRemoteCommandHandlerStatus
-import platform.UIKit.UIImage
 import kotlin.random.Random
 
 class IosAudioEngine : AudioEngine {
@@ -49,40 +46,11 @@ class IosAudioEngine : AudioEngine {
                 return
             }
 
-            val downloadedPath = tryDownloadSound(activeSound.sound.id)
-            if (downloadedPath != null) {
-                playFromFile(activeSound, downloadedPath)
-                updateNowPlayingInfo(activeSound)
-                return
-            }
-
             playFromGenerated(activeSound)
             updateNowPlayingInfo(activeSound)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    private fun tryDownloadSound(soundId: String): String? {
-        val urls = SoundUrlConfig.getDownloadUrls(soundId)
-        for (urlStr in urls) {
-            try {
-                val url = NSURL(string = urlStr)
-                val data = NSData.dataWithContentsOfURL(url, options = 0, error = null) ?: continue
-                if (data.length.toLong() > 1000) {
-                    val cacheDir = NSTemporaryDirectory() + "/noctra_sounds"
-                    NSFileManager.defaultManager.createDirectoryAtPath(
-                        cacheDir, withIntermediateDirectories = true, attributes = null, error = null
-                    )
-                    val outPath = "$cacheDir/${soundId}.wav"
-                    data.writeToFile(outPath, atomically = true)
-                    return outPath
-                }
-            } catch (_: Exception) {
-                continue
-            }
-        }
-        return null
     }
 
     private fun playFromFile(activeSound: ActiveSound, filePath: String) {
@@ -111,10 +79,12 @@ class IosAudioEngine : AudioEngine {
         val filePath = "$tempDir/${activeSound.sound.id}_generated.wav"
 
         wavData.usePinned { pinned ->
-            val nsData = NSData.create(
-                bytes = pinned.address,
-                length = wavData.size.toULong()
-            )
+            val nsData = kotlinx.cinterop.ExperimentalForeignApi.let {
+                platform.Foundation.NSData.create(
+                    bytes = pinned.address,
+                    length = wavData.size.toULong()
+                )
+            }
             nsData.writeToFile(filePath, atomically = true)
         }
 

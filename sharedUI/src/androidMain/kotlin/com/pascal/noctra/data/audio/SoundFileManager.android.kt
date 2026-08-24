@@ -3,10 +3,9 @@ package com.pascal.noctra.data.audio
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import noctra.sharedui.generated.resources.Res
 import java.io.File
 import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 actual class SoundFileManager(private val context: Context) {
 
@@ -24,20 +23,19 @@ actual class SoundFileManager(private val context: Context) {
                 )
             }
 
-            val urls = SoundUrlConfig.getDownloadUrls(soundId)
-            for (urlStr in urls) {
-                try {
-                    val downloaded = downloadFile(urlStr, File(cacheDir, "${soundId}.wav"))
-                    if (downloaded != null) {
+            try {
+                val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+                if (bytes.isNotEmpty()) {
+                    FileOutputStream(cached).use { it.write(bytes) }
+                    if (cached.exists() && cached.length() > 1000) {
                         return@withContext SoundFileInfo(
                             soundId = soundId,
-                            source = SoundSource.DOWNLOADED,
-                            filePath = downloaded.absolutePath
+                            source = SoundSource.BUNDLED,
+                            filePath = cached.absolutePath
                         )
                     }
-                } catch (_: Exception) {
-                    continue
                 }
+            } catch (_: Exception) {
             }
 
             SoundFileInfo(soundId = soundId, source = SoundSource.GENERATED)
@@ -61,32 +59,12 @@ actual class SoundFileManager(private val context: Context) {
         cacheDir.listFiles()?.forEach { it.delete() }
     }
 
-    private fun downloadFile(urlStr: String, outputFile: File): File? {
+    actual suspend fun hasBundledSound(soundId: String): Boolean {
         return try {
-            val url = URL(urlStr)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.connectTimeout = 15000
-            connection.readTimeout = 30000
-            connection.setRequestProperty("User-Agent", "Noctra/1.0")
-
-            if (connection.responseCode == 200) {
-                val inputStream = connection.inputStream
-                FileOutputStream(outputFile).use { output ->
-                    inputStream.use { input ->
-                        input.copyTo(output)
-                    }
-                }
-                if (outputFile.length() > 1000) {
-                    outputFile
-                } else {
-                    outputFile.delete()
-                    null
-                }
-            } else {
-                null
-            }
+            val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+            bytes.isNotEmpty()
         } catch (_: Exception) {
-            null
+            false
         }
     }
 }

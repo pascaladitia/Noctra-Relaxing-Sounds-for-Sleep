@@ -33,7 +33,6 @@ class AndroidAudioEngine(
         _activeSounds[activeSound.sound.id] = activeSound
 
         val cachedPath = soundFileManager.getCachedPath(activeSound.sound.id)
-
         if (cachedPath != null) {
             val service = NoctraPlaybackService.getInstance()
             if (service != null) {

@@ -1,8 +1,13 @@
 package com.pascal.noctra.data.audio
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.Foundation.*
-import platform.posix.memcpy
+import kotlinx.cinterop.usePinned
+import noctra.sharedui.generated.resources.Res
+import platform.Foundation.NSData
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSTemporaryDirectory
+import platform.Foundation.create
+import platform.Foundation.writeToFile
 
 actual class SoundFileManager {
 
@@ -22,7 +27,7 @@ actual class SoundFileManager {
         val cachedPath = "$cacheDir/${soundId}.wav"
         if (NSFileManager.defaultManager.fileExistsAtPath(cachedPath)) {
             val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(cachedPath, error = null)
-            val size = (attrs?.get("NSFileSize") as? NSNumber)?.longValue ?: 0
+            val size = (attrs?.get("NSFileSize") as? platform.Foundation.NSNumber)?.longValue ?: 0
             if (size > 1000) {
                 return SoundFileInfo(
                     soundId = soundId,
@@ -32,20 +37,25 @@ actual class SoundFileManager {
             }
         }
 
-        val urls = SoundUrlConfig.getDownloadUrls(soundId)
-        for (urlStr in urls) {
-            try {
-                val downloaded = downloadFile(urlStr, "$cacheDir/${soundId}.wav")
-                if (downloaded != null) {
-                    return SoundFileInfo(
-                        soundId = soundId,
-                        source = SoundSource.DOWNLOADED,
-                        filePath = downloaded
+        try {
+            val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+            if (bytes.isNotEmpty()) {
+                val nsData = bytes.usePinned { pinned ->
+                    NSData.create(
+                        bytes = pinned.address,
+                        length = bytes.size.toULong()
                     )
                 }
-            } catch (_: Exception) {
-                continue
+                nsData?.writeToFile(cachedPath, atomically = true)
+                if (NSFileManager.defaultManager.fileExistsAtPath(cachedPath)) {
+                    return SoundFileInfo(
+                        soundId = soundId,
+                        source = SoundSource.BUNDLED,
+                        filePath = cachedPath
+                    )
+                }
             }
+        } catch (_: Exception) {
         }
 
         return SoundFileInfo(soundId = soundId, source = SoundSource.GENERATED)
@@ -55,7 +65,7 @@ actual class SoundFileManager {
         val path = "$cacheDir/${soundId}.wav"
         if (NSFileManager.defaultManager.fileExistsAtPath(path)) {
             val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(path, error = null)
-            val size = (attrs?.get("NSFileSize") as? NSNumber)?.longValue ?: 0
+            val size = (attrs?.get("NSFileSize") as? platform.Foundation.NSNumber)?.longValue ?: 0
             if (size > 1000) return path
         }
         return null
@@ -71,13 +81,12 @@ actual class SoundFileManager {
         NSFileManager.defaultManager.removeItemAtPath(cacheDir, error = null)
     }
 
-    private fun downloadFile(urlStr: String, outputPath: String): String? {
-        val url = NSURL(string = urlStr)
-        val data = NSData.dataWithContentsOfURL(url, options = 0, error = null) ?: return null
-        if (data.length.toLong() > 1000) {
-            data.writeToFile(outputPath, atomically = true)
-            return outputPath
+    actual suspend fun hasBundledSound(soundId: String): Boolean {
+        return try {
+            val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+            bytes.isNotEmpty()
+        } catch (_: Exception) {
+            false
         }
-        return null
     }
 }
