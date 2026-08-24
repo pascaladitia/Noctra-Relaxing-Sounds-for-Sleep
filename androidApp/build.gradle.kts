@@ -20,7 +20,7 @@ android {
         targetSdk = 36
 
         applicationId = "com.pascal.noctra"
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0.0"
     }
 
