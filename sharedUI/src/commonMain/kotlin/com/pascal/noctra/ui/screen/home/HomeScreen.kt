@@ -61,14 +61,6 @@ fun HomeScreen(
                     color = NocturneTextMuted
                 )
             }
-
-            IconButton(onClick = event.onNavigateToSettings) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))

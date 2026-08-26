@@ -1,44 +1,25 @@
 package com.pascal.noctra.ui.navigation.route
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.MusicNote
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.pascal.noctra.ui.navigation.BottomBar
 import com.pascal.noctra.ui.navigation.screen.BaseScreen
 import com.pascal.noctra.ui.screen.home.HomeRoute
 import com.pascal.noctra.ui.screen.mixer.MixerRoute
 import com.pascal.noctra.ui.screen.onboarding.OnboardingRoute
 import com.pascal.noctra.ui.screen.settings.SettingsRoute
 import com.pascal.noctra.ui.screen.splash.SplashRoute
-import com.pascal.noctra.ui.theme.NocturneAccent
-import com.pascal.noctra.ui.theme.NocturneTextMuted
 import com.russhwolf.settings.Settings
-
-private data class BottomNavItem(
-    val title: String,
-    val iconFilled: ImageVector,
-    val iconOutlined: ImageVector,
-    val screen: BaseScreen
-)
-
-private val bottomNavItems = listOf(
-    BottomNavItem("Discover", Icons.Filled.Home, Icons.Outlined.Home, BaseScreen.HomeScreen),
-    BottomNavItem("Mixer", Icons.Filled.MusicNote, Icons.Outlined.MusicNote, BaseScreen.MixerScreen)
-)
 
 @Composable
 fun NavBaseRoute(
@@ -54,37 +35,7 @@ fun NavBaseRoute(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (currentRoute in listOf(BaseScreen.HomeScreen.route, BaseScreen.MixerScreen.route)) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                    bottomNavItems.forEach { item ->
-                        val selected = currentRoute == item.screen.route
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected) item.iconFilled else item.iconOutlined,
-                                    contentDescription = item.title
-                                )
-                            },
-                            label = { Text(item.title) },
-                            selected = selected,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = NocturneAccent,
-                                selectedTextColor = NocturneAccent,
-                                indicatorColor = NocturneAccent.copy(alpha = 0.12f),
-                                unselectedIconColor = NocturneTextMuted,
-                                unselectedTextColor = NocturneTextMuted
-                            ),
-                            onClick = {
-                                navController.navigate(item.screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    restoreState = true
-                                    launchSingleTop = true
-                                }
-                            }
-                        )
-                    }
-                }
+                BottomBar(navController)
             }
         }
     ) { paddingValues ->

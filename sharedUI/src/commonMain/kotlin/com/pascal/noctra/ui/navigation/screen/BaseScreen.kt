@@ -6,5 +6,6 @@ sealed class BaseScreen(val route: String) {
     data object OnboardingScreen : BaseScreen("onboarding")
     data object HomeScreen : BaseScreen("home")
     data object MixerScreen : BaseScreen("mixer")
+    data object FavoriteScreen : BaseScreen("favorite")
     data object SettingsScreen : BaseScreen("settings")
 }
