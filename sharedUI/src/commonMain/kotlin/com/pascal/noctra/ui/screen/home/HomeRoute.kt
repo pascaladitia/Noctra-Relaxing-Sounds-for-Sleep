@@ -19,14 +19,12 @@ fun HomeRoute(
     CompositionLocalProvider(
         LocalHomeEvent provides HomeEvent(
             onNavigateToMixer = onNavigateToMixer,
-            onNavigateToSettings = onNavigateToSettings
-        )
-    ) {
-        HomeScreen(
-            uiState = uiState,
+            onNavigateToSettings = onNavigateToSettings,
             onToggleSound = viewModel::toggleSound,
             onPlayPreset = viewModel::playPreset,
             onCategorySelected = viewModel::setCategory
         )
+    ) {
+        HomeScreen(uiState = uiState)
     }
 }

@@ -7,6 +7,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -29,6 +31,17 @@ expect fun isOnline(): Boolean
 
 expect suspend fun decodeByteArrayToImageBitmap(bytes: ByteArray): ImageBitmap?
 
+fun getGreeting(): String {
+    val now = kotlin.time.Clock.System.now()
+    val localDateTime = now.toLocalDateTime(TimeZone.currentSystemDefault())
+    val hour = localDateTime.hour
+    return when {
+        hour in 5..11 -> "Good Morning"
+        hour in 12..17 -> "Good Afternoon"
+        else -> "Good Evening"
+    }
+}
+
 @OptIn(ExperimentalUuidApi::class)
 fun generateUID(): String {
     return Uuid.random().toString()
@@ -36,22 +49,6 @@ fun generateUID(): String {
 
 fun getCurrentDateTimeString(): String {
     return kotlin.time.Clock.System.now().toString()
-}
-
-fun String.removeEpisodeSuffix(): String {
-    return this.replace(Regex("-episode-\\d+$"), "")
-}
-
-fun String.cleanTitle(): String {
-    return this
-        .replace(
-            Regex(
-                "\\s*episode\\s*\\d+.*$",
-                RegexOption.IGNORE_CASE
-            ),
-            ""
-        )
-        .trim()
 }
 
 fun String.extractChapterSlug(): String {

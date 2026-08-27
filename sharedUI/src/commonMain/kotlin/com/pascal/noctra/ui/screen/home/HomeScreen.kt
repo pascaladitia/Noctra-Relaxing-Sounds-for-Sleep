@@ -23,6 +23,7 @@ import com.pascal.noctra.ui.component.home.SoundGridCard
 import com.pascal.noctra.ui.screen.home.state.LocalHomeEvent
 import com.pascal.noctra.ui.screen.home.state.HomeUiState
 import com.pascal.noctra.ui.theme.NocturneTextMuted
+import com.pascal.noctra.utils.getGreeting
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -30,10 +31,7 @@ import kotlinx.datetime.toLocalDateTime
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    uiState: HomeUiState = HomeUiState(),
-    onToggleSound: (Sound) -> Unit = {},
-    onPlayPreset: (Preset) -> Unit = {},
-    onCategorySelected: (SoundCategory) -> Unit = {}
+    uiState: HomeUiState = HomeUiState()
 ) {
     val event = LocalHomeEvent.current
 
@@ -49,7 +47,9 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            Column(
+                modifier = modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = getGreeting(),
                     style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
@@ -72,7 +72,7 @@ fun HomeScreen(
                 CategoryChip(
                     category = category,
                     isSelected = uiState.selectedCategory == category,
-                    onClick = { onCategorySelected(category) }
+                    onClick = { event.onCategorySelected(category) }
                 )
             }
         }
@@ -95,7 +95,7 @@ fun HomeScreen(
                 SoundGridCard(
                     sound = sound,
                     isActive = uiState.activeSoundIds.contains(sound.id),
-                    onToggle = { onToggleSound(sound) }
+                    onToggle = { event.onToggleSound(sound) }
                 )
             }
         }
@@ -116,22 +116,11 @@ fun HomeScreen(
             items(uiState.presets) { preset ->
                 PresetCard(
                     preset = preset,
-                    onPlay = { onPlayPreset(preset) }
+                    onPlay = { event.onPlayPreset(preset) }
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(100.dp))
-    }
-}
-
-private fun getGreeting(): String {
-    val now = kotlin.time.Clock.System.now()
-    val localDateTime = now.toLocalDateTime(TimeZone.currentSystemDefault())
-    val hour = localDateTime.hour
-    return when {
-        hour in 5..11 -> "Good Morning"
-        hour in 12..17 -> "Good Afternoon"
-        else -> "Good Evening"
     }
 }
