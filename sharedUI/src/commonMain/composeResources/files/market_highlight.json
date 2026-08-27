@@ -1,0 +1,37 @@
+{
+  "section": "Market Highlight",
+  "items": [
+    {
+      "label": "Company Update",
+      "title": "Book building Superbank dimulai! Harga di Rp 525 - Rp 695",
+      "price_info": "EMTK 1.255 (-3,09%)",
+      "company_name": "Elang Mahkota Teknologi Tbk.",
+      "time_ago": "21 Jam lalu",
+      "action": "Beli"
+    },
+    {
+      "label": "Company Update",
+      "title": "CEO GOTO, Patrick Walujo mengundurkan diri seiring rencana merger GoTo-Grab",
+      "price_info": "GOTO 65 (0%)",
+      "company_name": "GoTo Gojek Tokopedia Tbk.",
+      "time_ago": "1 Hari lalu",
+      "action": "Beli"
+    },
+    {
+      "label": "Market Insight",
+      "title": "IHSG melemah tipis, investor asing catat net sell Rp 420 miliar",
+      "price_info": "IHSG 7.210 (-0,32%)",
+      "company_name": "Indeks Harga Saham Gabungan",
+      "time_ago": "3 Jam lalu",
+      "action": "Lihat"
+    },
+    {
+      "label": "Company Update",
+      "title": "BBCA catat kenaikan laba bersih 12% YoY pada kuartal III",
+      "price_info": "BBCA 9.825 (+0,51%)",
+      "company_name": "Bank Central Asia Tbk.",
+      "time_ago": "5 Jam lalu",
+      "action": "Beli"
+    }
+  ]
+}
