@@ -6,39 +6,45 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pascal.noctra.ui.screen.onboarding.state.LocalOnboardingEvent
 import com.pascal.noctra.ui.screen.onboarding.state.OnboardingUiState
 import com.pascal.noctra.ui.theme.NocturneAccent
+import com.pascal.noctra.ui.theme.NocturneGlass
 import com.pascal.noctra.ui.theme.NocturneTextMuted
 import kotlinx.coroutines.launch
 
 data class OnboardingPage(
-    val icon: String,
+    val icon: ImageVector,
     val title: String,
     val description: String
 )
 
 val onboardingPages = listOf(
     OnboardingPage(
-        icon = "\uD83C\uDF19",
+        icon = Icons.Filled.Bedtime,
         title = "Sleep Better",
         description = "Discover a world of calming sounds designed to help you fall asleep faster and wake up refreshed."
     ),
     OnboardingPage(
-        icon = "\uD83C\uDFB6",
+        icon = Icons.Filled.GraphicEq,
         title = "Mix Your Sounds",
         description = "Create your perfect soundscape by layering multiple sounds with independent volume controls."
     ),
     OnboardingPage(
-        icon = "\uD83D\uDCA4",
+        icon = Icons.Filled.Timer,
         title = "Sleep Anywhere",
         description = "Sounds play seamlessly in the background and from the lock screen. Set a timer and drift off."
     )
@@ -69,7 +75,20 @@ fun OnboardingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(text = data.icon, style = MaterialTheme.typography.displayLarge)
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(NocturneGlass),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = data.icon,
+                        contentDescription = null,
+                        tint = NocturneAccent,
+                        modifier = Modifier.size(56.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = data.title,

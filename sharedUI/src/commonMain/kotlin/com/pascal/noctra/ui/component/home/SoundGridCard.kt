@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pascal.noctra.domain.model.sound.Sound
+import com.pascal.noctra.ui.component.SoundIcon
 import com.pascal.noctra.ui.theme.*
 
 @Composable
@@ -74,7 +75,11 @@ fun SoundGridCard(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = sound.icon, style = MaterialTheme.typography.headlineLarge)
+                    SoundIcon(
+                        iconKey = sound.icon,
+                        tint = if (isActive) NocturneAccent else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        modifier = Modifier.size(30.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

@@ -14,7 +14,7 @@ actual class SoundFileManager(private val context: Context) {
 
     actual suspend fun getSoundData(soundId: String, fileName: String): SoundFileInfo {
         return withContext(Dispatchers.IO) {
-            val cached = File(cacheDir, "${soundId}.wav")
+            val cached = File(cacheDir, "${soundId}.ogg")
             if (cached.exists() && cached.length() > 1000) {
                 return@withContext SoundFileInfo(
                     soundId = soundId,
@@ -24,7 +24,7 @@ actual class SoundFileManager(private val context: Context) {
             }
 
             try {
-                val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+                val bytes = Res.readBytes("files/sounds/${fileName}.ogg")
                 if (bytes.isNotEmpty()) {
                     FileOutputStream(cached).use { it.write(bytes) }
                     if (cached.exists() && cached.length() > 1000) {
@@ -43,7 +43,7 @@ actual class SoundFileManager(private val context: Context) {
     }
 
     actual fun getCachedPath(soundId: String): String? {
-        val cached = File(cacheDir, "${soundId}.wav")
+        val cached = File(cacheDir, "${soundId}.ogg")
         return if (cached.exists() && cached.length() > 1000) cached.absolutePath else null
     }
 
@@ -61,7 +61,7 @@ actual class SoundFileManager(private val context: Context) {
 
     actual suspend fun hasBundledSound(soundId: String): Boolean {
         return try {
-            val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+            val bytes = Res.readBytes("files/sounds/${soundId}.ogg")
             bytes.isNotEmpty()
         } catch (_: Exception) {
             false

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.pascal.noctra.domain.model.sound.ActiveSound
+import com.pascal.noctra.ui.component.SoundIcon
 import com.pascal.noctra.ui.theme.NocturneAccent
 import com.pascal.noctra.ui.theme.NocturneGlass
 import com.pascal.noctra.ui.theme.NocturneGlassBorder
@@ -52,7 +53,11 @@ fun SoundCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(text = activeSound.sound.icon, style = MaterialTheme.typography.titleLarge)
+                    SoundIcon(
+                        iconKey = activeSound.sound.icon,
+                        tint = NocturneAccent.copy(alpha = contentAlpha),
+                        modifier = Modifier.size(24.dp)
+                    )
                     Text(
                         text = activeSound.sound.name,
                         style = MaterialTheme.typography.titleMedium,

@@ -25,7 +25,7 @@ actual class SoundFileManager {
     }
 
     actual suspend fun getSoundData(soundId: String, fileName: String): SoundFileInfo {
-        val cachedPath = "$cacheDir/${soundId}.wav"
+        val cachedPath = "$cacheDir/${soundId}.ogg"
         if (NSFileManager.defaultManager.fileExistsAtPath(cachedPath)) {
             val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(cachedPath, error = null)
             val size = (attrs?.get("NSFileSize") as? NSNumber)?.longValue ?: 0
@@ -39,7 +39,7 @@ actual class SoundFileManager {
         }
 
         try {
-            val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+            val bytes = Res.readBytes("files/sounds/${fileName}.ogg")
             if (bytes.isNotEmpty()) {
                 val nsData = bytes.usePinned { pinned ->
                     NSData.create(
@@ -63,7 +63,7 @@ actual class SoundFileManager {
     }
 
     actual fun getCachedPath(soundId: String): String? {
-        val path = "$cacheDir/${soundId}.wav"
+        val path = "$cacheDir/${soundId}.ogg"
         if (NSFileManager.defaultManager.fileExistsAtPath(path)) {
             val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(path, error = null)
             val size = (attrs?.get("NSFileSize") as? NSNumber)?.longValue ?: 0
@@ -84,7 +84,7 @@ actual class SoundFileManager {
 
     actual suspend fun hasBundledSound(soundId: String): Boolean {
         return try {
-            val bytes = Res.readBytes("files/sounds/${soundId}.wav")
+            val bytes = Res.readBytes("files/sounds/${soundId}.ogg")
             bytes.isNotEmpty()
         } catch (_: Exception) {
             false
