@@ -11,6 +11,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pascal.noctra.domain.model.preset.Preset
+import com.pascal.noctra.ui.component.SoundIcon
+import com.pascal.noctra.ui.theme.NocturneAccent
 import com.pascal.noctra.ui.theme.NocturneGlass
 import com.pascal.noctra.ui.theme.NocturneGlassBorder
 import com.pascal.noctra.ui.theme.NocturneTextMuted
@@ -34,7 +36,11 @@ fun PresetCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(text = preset.icon, style = MaterialTheme.typography.headlineMedium)
+            SoundIcon(
+                iconKey = preset.icon,
+                tint = NocturneAccent,
+                modifier = Modifier.size(28.dp)
+            )
             Text(
                 text = preset.name,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),

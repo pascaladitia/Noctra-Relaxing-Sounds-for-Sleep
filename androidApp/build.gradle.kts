@@ -56,6 +56,7 @@ android {
         }
         getByName("release") {
             isMinifyEnabled = true
+            isShrinkResources = true
             signingConfigs.findByName("release")?.let {
                 signingConfig = it
             }
