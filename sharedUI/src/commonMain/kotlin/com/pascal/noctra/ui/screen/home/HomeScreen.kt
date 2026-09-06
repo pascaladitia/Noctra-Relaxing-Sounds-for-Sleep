@@ -1,32 +1,38 @@
 package com.pascal.noctra.ui.screen.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pascal.noctra.domain.model.preset.Preset
-import com.pascal.noctra.domain.model.sound.Sound
 import com.pascal.noctra.domain.model.sound.SoundCategory
 import com.pascal.noctra.ui.component.home.CategoryChip
 import com.pascal.noctra.ui.component.home.PresetCard
 import com.pascal.noctra.ui.component.home.SoundGridCard
-import com.pascal.noctra.ui.screen.home.state.LocalHomeEvent
+import com.pascal.noctra.ui.component.screenUtils.topShadow
 import com.pascal.noctra.ui.screen.home.state.HomeUiState
+import com.pascal.noctra.ui.screen.home.state.LocalHomeEvent
 import com.pascal.noctra.ui.theme.NocturneTextMuted
 import com.pascal.noctra.utils.getGreeting
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun HomeScreen(
@@ -39,12 +45,13 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp)
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
@@ -66,6 +73,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         LazyRow(
+            modifier = Modifier.padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(SoundCategory.entries) { category ->
@@ -86,8 +94,11 @@ fun HomeScreen(
         }
 
         LazyVerticalGrid(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .wrapContentHeight()
+                .weight(1f),
             columns = GridCells.Fixed(2),
-            modifier = Modifier.wrapContentHeight().weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -100,27 +111,30 @@ fun HomeScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Curated Presets",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.background),
         ) {
-            items(uiState.presets) { preset ->
-                PresetCard(
-                    preset = preset,
-                    onPlay = { event.onPlayPreset(preset) }
-                )
+            Text(
+                text = "Curated Presets",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(uiState.presets) { preset ->
+                    PresetCard(
+                        preset = preset,
+                        onPlay = { event.onPlayPreset(preset) }
+                    )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
     }
 }
